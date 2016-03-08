@@ -19,6 +19,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV HOME /root
 WORKDIR /root
 
+RUN wget --no-check-certificate https://github.com/mininet/mininet/archive/master.zip
+RUN unzip master.zip && \
+    cd mininet-master && \
+    util/install.sh -n
+
+RUN wget --no-check-certificate https://github.com/openvswitch/ovs/archive/master.zip
+RUN unzip master.zip && \
+    cd ovs-master && \
+    apt-get install build-essential fakeroot autoconf libtool && \
+    ./boot.sh && \
+    ./configure --with-linux=/lib/modules/`uname -r`/build && \
+    make && make install && make modules_install && depmod && \
+    rm -f /usr/local/etc/openvswitch/conf.db /usr/local/etc/openvswitch/.conf.db.~lock~ && \
+    ovsdb-tool create /usr/local/etc/openvswitch/conf.db vswitchd/vswitch.ovsschema
+
 RUN wget --no-check-certificate https://github.com/osrg/ryu/archive/master.zip
 RUN unzip master.zip && \
     cd ryu-master && \
